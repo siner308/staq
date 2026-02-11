@@ -1,22 +1,42 @@
 name: Staqd
 
 on:
-  pull_request:
-    types: [opened, edited]
-  issue_comment:
-    types: [created]
+  workflow_call:
+    inputs:
+      app-id:
+        description: 'GitHub App ID. Used with app-private-key to generate an installation token.'
+        type: string
+        required: false
+        default: ''
+      runs-on:
+        description: 'Runner label for all jobs (default: ubuntu-latest)'
+        type: string
+        required: false
+        default: 'ubuntu-latest'
+      timeout-minutes:
+        description: 'Timeout for the command job in minutes (default: 30)'
+        type: number
+        required: false
+        default: 30
+    secrets:
+      app-private-key:
+        description: 'GitHub App private key. Used with app-id to generate an installation token.'
+        required: false
 
 jobs:
   # Guide comment — no concurrency needed (idempotent)
   guide:
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on }}
     permissions:
       pull-requests: write
       issues: write
     steps:
-      - uses: actions/checkout@v6  # needed for uses: ./
-      - uses: ./  # dogfood: use local action
+      - uses: siner308/staqd@v1
+        with:
+          token: ${{ github.token }}
+          app-id: ${{ inputs.app-id }}
+          app-private-key: ${{ secrets.app-private-key }}
 
   # Resolve base branch for concurrency group
   resolve-base:
@@ -24,7 +44,7 @@ jobs:
       github.event_name == 'issue_comment'
       && github.event.issue.pull_request
       && (startsWith(github.event.comment.body, 'stack ') || startsWith(github.event.comment.body, 'st '))
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on }}
     permissions:
       pull-requests: read
     outputs:
@@ -46,13 +66,16 @@ jobs:
     concurrency:
       group: staqd-${{ needs.resolve-base.outputs.base-ref }}
       cancel-in-progress: false
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+    runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
     permissions:
       contents: write
       pull-requests: write
       issues: write
       checks: read
     steps:
-      - uses: actions/checkout@v6  # needed for uses: ./
-      - uses: ./  # dogfood: use local action
+      - uses: siner308/staqd@v1
+        with:
+          token: ${{ github.token }}
+          app-id: ${{ inputs.app-id }}
+          app-private-key: ${{ secrets.app-private-key }}

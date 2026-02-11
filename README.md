@@ -22,6 +22,84 @@ on:
   issue_comment:
     types: [created]
 
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  checks: read
+
+jobs:
+  staqd:
+    uses: siner308/staqd/.github/workflows/staqd.yml@v1
+```
+
+That's it. The reusable workflow handles everything internally: guide comments, base branch resolution, concurrency groups, and command execution.
+
+### With GitHub App (recommended for CI auto-trigger)
+
+```yaml
+jobs:
+  staqd:
+    uses: siner308/staqd/.github/workflows/staqd.yml@v1
+    with:
+      app-id: ${{ vars.STACK_APP_ID }}
+    secrets:
+      app-private-key: ${{ secrets.STACK_APP_PRIVATE_KEY }}
+```
+
+### Reusable Workflow Inputs
+
+| Input | Description | Required | Default |
+|-------|-------------|----------|---------|
+| `app-id` | GitHub App ID. Used with `app-private-key` to generate an installation token. | No | |
+| `runs-on` | Runner label for all jobs | No | `ubuntu-latest` |
+| `timeout-minutes` | Timeout for command job | No | `30` |
+
+### Reusable Workflow Secrets
+
+| Secret | Description | Required |
+|--------|-------------|----------|
+| `app-private-key` | GitHub App private key. Used with `app-id` input. | No |
+
+> **Why a GitHub App?** `GITHUB_TOKEN` pushes don't trigger other workflows (GitHub security policy). If your CI needs to run after a restack force-push, use a GitHub App.
+
+<details>
+<summary>How to create a GitHub App</summary>
+
+1. Go to **GitHub Settings → Developer settings → GitHub Apps → New GitHub App**
+2. Fill in:
+   - **App name**: e.g., `staqd-bot`
+   - **Homepage URL**: your repo URL
+   - **Webhook**: uncheck "Active" (not needed)
+3. Set **Repository permissions**:
+   - **Contents**: Read & write
+   - **Pull requests**: Read & write
+   - **Issues**: Read & write
+   - **Checks**: Read
+4. Click **Create GitHub App**
+5. Note the **App ID** from the app's settings page
+6. Click **Generate a private key** and download the `.pem` file
+7. Click **Install App** and install it on your repository
+8. In your repo, go to **Settings → Secrets and variables → Actions**:
+   - Add variable: `STACK_APP_ID` = your App ID
+   - Add secret: `STACK_APP_PRIVATE_KEY` = contents of the `.pem` file
+
+</details>
+
+<details>
+<summary><h3>Advanced: Direct Composite Action</h3></summary>
+
+For full control over per-job runners, permissions, and custom steps, use the composite action directly:
+
+```yaml
+name: Staqd
+
+on:
+  pull_request:
+    types: [opened, edited]
+  issue_comment:
+    types: [created]
+
 jobs:
   # Guide comment — no concurrency needed
   guide:
@@ -72,44 +150,7 @@ jobs:
       - uses: siner308/staqd@v1
 ```
 
-### With GitHub App (recommended for CI auto-trigger)
-
-```yaml
-      - uses: siner308/staqd@v1
-        with:
-          app-id: ${{ vars.STACK_APP_ID }}
-          app-private-key: ${{ secrets.STACK_APP_PRIVATE_KEY }}
-```
-
-### With PAT
-
-```yaml
-      - uses: siner308/staqd@v1
-        with:
-          token: ${{ secrets.STACK_BOT_TOKEN }}
-```
-
-### With custom runners
-
-Staqd is a composite action — `runs-on` is controlled by your workflow, not the action. Use any runner you need:
-
-```yaml
-jobs:
-  guide:
-    runs-on: self-hosted
-    steps:
-      - uses: siner308/staqd@v1
-
-  resolve-base:
-    runs-on: [self-hosted, linux, arm64]
-    # ...
-
-  command:
-    runs-on: ubuntu-latest-4-cores
-    # ...
-```
-
-### Inputs
+#### Composite Action Inputs
 
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
@@ -117,7 +158,7 @@ jobs:
 | `app-id` | GitHub App ID. Used with `app-private-key` to generate an installation token. | No | |
 | `app-private-key` | GitHub App private key. Used with `app-id` to generate an installation token. | No | |
 
-> **Why a custom token?** `GITHUB_TOKEN` pushes don't trigger other workflows (GitHub security policy). If your CI needs to run after a restack force-push, use a GitHub App or PAT.
+</details>
 
 ## Commands
 

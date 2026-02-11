@@ -591,51 +591,15 @@
   <span class="code-property">issue_comment:</span>
     <span class="code-property">types:</span> [created]
 
+<span class="code-keyword">permissions:</span>
+  <span class="code-property">contents:</span> write
+  <span class="code-property">pull-requests:</span> write
+  <span class="code-property">issues:</span> write
+  <span class="code-property">checks:</span> read
+
 <span class="code-keyword">jobs:</span>
-  <span class="code-property">guide:</span>
-    <span class="code-keyword">if:</span> github.event_name == <span class="code-string">'pull_request'</span>
-    <span class="code-property">runs-on:</span> ubuntu-latest
-    <span class="code-property">permissions:</span>
-      <span class="code-property">pull-requests:</span> write
-      <span class="code-property">issues:</span> write
-    <span class="code-property">steps:</span>
-      - <span class="code-keyword">uses:</span> siner308/staqd@v1
-
-  <span class="code-property">resolve-base:</span>
-    <span class="code-keyword">if:</span> >-
-      github.event_name == <span class="code-string">'issue_comment'</span>
-      && github.event.issue.pull_request
-      && startsWith(github.event.comment.body, <span class="code-string">'stack '</span>)
-    <span class="code-property">runs-on:</span> ubuntu-latest
-    <span class="code-property">permissions:</span>
-      <span class="code-property">pull-requests:</span> read
-    <span class="code-property">outputs:</span>
-      <span class="code-property">base-ref:</span> ${{ steps.get.outputs.base-ref }}
-    <span class="code-property">steps:</span>
-      - <span class="code-property">id:</span> get
-        <span class="code-keyword">uses:</span> actions/github-script@v7
-        <span class="code-property">with:</span>
-          <span class="code-property">script:</span> |
-            <span class="code-keyword">const</span> { data: pr } = <span class="code-keyword">await</span> github.rest.pulls.get({
-              ...context.repo,
-              pull_number: context.payload.issue.number,
-            });
-            core.setOutput(<span class="code-string">'base-ref'</span>, pr.base.ref);
-
-  <span class="code-property">command:</span>
-    <span class="code-property">needs:</span> resolve-base
-    <span class="code-property">concurrency:</span>
-      <span class="code-property">group:</span> staqd-${{ needs.resolve-base.outputs.base-ref }}
-      <span class="code-property">cancel-in-progress:</span> <span class="code-keyword">false</span>
-    <span class="code-property">runs-on:</span> ubuntu-latest
-    <span class="code-property">timeout-minutes:</span> 30
-    <span class="code-property">permissions:</span>
-      <span class="code-property">contents:</span> write
-      <span class="code-property">pull-requests:</span> write
-      <span class="code-property">issues:</span> write
-      <span class="code-property">checks:</span> read
-    <span class="code-property">steps:</span>
-      - <span class="code-keyword">uses:</span> siner308/staqd@v1</code></pre>
+  <span class="code-property">staqd:</span>
+    <span class="code-keyword">uses:</span> siner308/staqd/.github/workflows/staqd.yml@v1</code></pre>
       </div>
     </div>
   </section>
