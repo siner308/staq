@@ -1,4 +1,4 @@
-[![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-powered-2088FF?logo=githubactions&logoColor=white)](https://github.com/siner308/staqd)
+[![CI](https://github.com/siner308/staqd/actions/workflows/dogfood.yml/badge.svg)](https://github.com/siner308/staqd/actions/workflows/dogfood.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub release](https://img.shields.io/github/v/release/siner308/staqd?include_prereleases&sort=semver)](https://github.com/siner308/staqd/releases)
 
