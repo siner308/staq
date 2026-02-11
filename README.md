@@ -1,4 +1,6 @@
-# Staq
+# Staqd
+
+**/stakt/** — like "stacked"
 
 Stacked PR merge queue powered by GitHub Actions and PR comments.
 No CLI to install. No SaaS dependency. One workflow file is all you need.
@@ -8,7 +10,7 @@ No CLI to install. No SaaS dependency. One workflow file is all you need.
 ### Basic
 
 ```yaml
-name: Staq
+name: Staqd
 
 on:
   pull_request:
@@ -17,11 +19,11 @@ on:
     types: [created]
 
 concurrency:
-  group: staq
+  group: staqd
   cancel-in-progress: false
 
 jobs:
-  staq:
+  staqd:
     if: >-
       github.event_name == 'pull_request'
       || (github.event_name == 'issue_comment'
@@ -35,13 +37,13 @@ jobs:
       issues: write
       checks: read
     steps:
-      - uses: siner308/staq@v1
+      - uses: siner308/staqd@v1
 ```
 
 ### With GitHub App (recommended for CI auto-trigger)
 
 ```yaml
-      - uses: siner308/staq@v1
+      - uses: siner308/staqd@v1
         with:
           app-id: ${{ vars.STACK_APP_ID }}
           app-private-key: ${{ secrets.STACK_APP_PRIVATE_KEY }}
@@ -50,7 +52,7 @@ jobs:
 ### With PAT
 
 ```yaml
-      - uses: siner308/staq@v1
+      - uses: siner308/staqd@v1
         with:
           token: ${{ secrets.STACK_BOT_TOKEN }}
 ```
@@ -248,7 +250,7 @@ Rejects the push if the remote ref changed since last fetch. Prevents overwritin
 
 ```yaml
 concurrency:
-  group: staq
+  group: staqd
   cancel-in-progress: false
 ```
 
@@ -257,7 +259,7 @@ Concurrent `stack merge` calls cause race conditions. `cancel-in-progress: false
 
 ## Alternatives
 
-| | Staq | Graphite | ghstack |
+| | Staqd | Graphite | ghstack |
 |---|---|---|---|
 | Installation | None (workflow file) | CLI + account | CLI |
 | Stack storage | PR body HTML comments | `.graphite_info` + server | Commit metadata |

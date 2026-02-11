@@ -1,4 +1,4 @@
-name: Staq
+name: Staqd
 
 on:
   pull_request:
@@ -7,11 +7,11 @@ on:
     types: [created]
 
 concurrency:
-  group: staq
+  group: staqd
   cancel-in-progress: false
 
 jobs:
-  staq:
+  staqd:
     if: >-
       github.event_name == 'pull_request'
       || (github.event_name == 'issue_comment'
@@ -25,5 +25,5 @@ jobs:
       issues: write
       checks: read
     steps:
-      - uses: actions/checkout@v4  # needed for uses: ./
+      - uses: actions/checkout@v6  # needed for uses: ./
       - uses: ./  # dogfood: use local action

@@ -1,4 +1,4 @@
-// Staq constants
+// Staqd constants
 
 const RETRY_INTERVAL_MS = 30000;
 const MAX_RETRIES = 20;

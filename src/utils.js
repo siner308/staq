@@ -1,4 +1,4 @@
-// Staq utilities
+// Staqd utilities
 
 function parseStackMeta(body) {
   const pattern = /<!-- stack-rebase:([\s\S]*?) -->/;
