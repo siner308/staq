@@ -41,9 +41,9 @@ jobs:
   staqd:
     uses: siner308/staqd/.github/workflows/staqd.yml@v0.1
     with:
-      app-id: ${{ vars.STACK_APP_ID }}
+      app-id: ${{ vars.STAQD_APP_ID }}
     secrets:
-      app-private-key: ${{ secrets.STACK_APP_PRIVATE_KEY }}
+      app-private-key: ${{ secrets.STAQD_APP_PRIVATE_KEY }}
 ```
 
 ### Reusable Workflow Inputs
@@ -80,8 +80,8 @@ jobs:
 6. Click **Generate a private key** and download the `.pem` file
 7. Click **Install App** and install it on your repository
 8. In your repo, go to **Settings → Secrets and variables → Actions**:
-   - Add variable: `STACK_APP_ID` = your App ID
-   - Add secret: `STACK_APP_PRIVATE_KEY` = contents of the `.pem` file
+   - Add variable: `STAQD_APP_ID` = your App ID
+   - Add secret: `STAQD_APP_PRIVATE_KEY` = contents of the `.pem` file
 
 </details>
 
