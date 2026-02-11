@@ -294,54 +294,45 @@ jobs:
             // Restack 공통 로직
             // ════════════════════════════════════════
 
+            // children 배열의 모든 항목은 siblings (직속 자식)
+            // 체이닝 없이 모두 같은 parent 위에 rebase
             async function restackChildren(children, baseBranch, initialSkip, { parentBranch = null } = {}) {
               await exec.exec('git', ['fetch', 'origin']);
 
-              // parentBranch가 주어지면 머지 전 restack (onto = 부모 브랜치)
-              // 없으면 머지 후 restack (onto = baseBranch = main)
               const merged = !parentBranch;
+              const ontoBase = parentBranch ? `origin/${parentBranch}` : `origin/${baseBranch}`;
               const results = [];
-              let prevBase = parentBranch ? `origin/${parentBranch}` : `origin/${baseBranch}`;
-              let prevSkip = initialSkip;
-              let failed = false;
 
               for (const child of children) {
                 const oldTip = await getOldTip(child.branch);
 
                 if (!oldTip) {
                   results.push({ ...child, status: 'missing' });
-                  failed = true;
-                  continue;
-                }
-                if (failed) {
-                  results.push({ ...child, status: 'skipped', oldTip });
                   continue;
                 }
 
                 await ensureLocalBranch(child.branch);
-                const r = await doRestack(child.branch, prevBase, prevSkip);
+                const r = await doRestack(child.branch, ontoBase, initialSkip);
 
                 if (r.ok) {
                   results.push({ ...child, status: 'restacked', oldTip });
-                  prevSkip = oldTip;
-                  prevBase = child.branch;
                 } else {
                   results.push({
                     ...child, status: 'conflict', oldTip, error: r.error,
                   });
-                  failed = true;
                 }
               }
 
-              // 머지 후 restack에서만 첫 번째 자식의 base를 main으로 변경
+              // 머지 후 restack에서 모든 자식의 base를 main으로 변경
               if (merged) {
-                const first = results.find(r => r.status === 'restacked');
-                if (first) {
-                  await github.rest.pulls
-                    .update({
-                      owner, repo, pull_number: first.pr, base: baseBranch,
-                    })
-                    .catch(() => {});
+                for (const r of results) {
+                  if (r.status === 'restacked') {
+                    await github.rest.pulls
+                      .update({
+                        owner, repo, pull_number: r.pr, base: baseBranch,
+                      })
+                      .catch(() => {});
+                  }
                 }
               }
 
@@ -354,7 +345,7 @@ jobs:
                 merged: 'Merged',
                 conflict: 'Conflict',
                 missing: 'Branch not found',
-                skipped: 'Skipped (blocked)',
+                skipped: 'Skipped',
                 merge_failed: 'Merge failed',
               };
               const rows = results.map(
@@ -362,26 +353,17 @@ jobs:
                   `| \`${r.branch}\` | #${r.pr} | ${label[r.status] || r.status} |`
               );
 
-              const firstFail = results.findIndex(
-                r => !['restacked', 'merged'].includes(r.status)
+              const failed = results.filter(
+                r => !['restacked', 'merged'].includes(r.status) && r.oldTip
               );
               let manual = '';
-              if (firstFail >= 0) {
+              if (failed.length) {
+                const ontoTarget = parentBranch ? `origin/${parentBranch}` : `origin/${baseBranch}`;
                 const cmds = ['git fetch origin', ''];
-                for (let i = firstFail; i < results.length; i++) {
-                  const r = results[i];
-                  if (!r.oldTip) continue;
-                  const onto =
-                    i === 0
-                      ? (parentBranch ? `origin/${parentBranch}` : `origin/${baseBranch}`)
-                      : results[i - 1].branch;
-                  const skip =
-                    i === 0
-                      ? skipSha.substring(0, 8)
-                      : (results[i - 1].oldTip || skipSha).substring(0, 8);
+                for (const r of failed) {
                   cmds.push(`# ${r.branch} (PR #${r.pr})`);
                   cmds.push(
-                    `git rebase --onto ${onto} ${skip} ${r.branch}`
+                    `git rebase --onto ${ontoTarget} ${skipSha.substring(0, 8)} ${r.branch}`
                   );
                   cmds.push('# resolve conflicts if any, then:');
                   cmds.push(
@@ -509,8 +491,20 @@ jobs:
 
             // ── merge-all ──
             if (command === 'merge-all') {
+              // 재귀적으로 모든 PR 수집 (DFS)
+              async function collectAllPRs(prNum) {
+                const nums = [prNum];
+                const { meta } = await getStackMeta(prNum);
+                if (meta?.children) {
+                  for (const child of meta.children) {
+                    nums.push(...(await collectAllPRs(child.pr)));
+                  }
+                }
+                return nums;
+              }
+
               if (!force) {
-                const allPRs = [prNumber, ...children.map(c => c.pr)];
+                const allPRs = await collectAllPRs(prNumber);
                 const unapproved = [];
                 for (const n of allPRs) {
                   if (!(await isApproved(n))) unapproved.push(n);
@@ -546,69 +540,68 @@ jobs:
                 return;
               }
 
+              // 재귀적으로 children → children의 children 순서로 머지
               const results = [];
-              let prevSkip = pr.head.sha;
 
-              for (let i = 0; i < children.length; i++) {
-                const child = children[i];
-                await exec.exec('git', ['fetch', 'origin']);
+              async function mergeChildren(childrenList, parentSkipSha) {
+                for (const child of childrenList) {
+                  await exec.exec('git', ['fetch', 'origin']);
 
-                const oldTip = await getOldTip(child.branch);
-                if (!oldTip) {
-                  results.push({ ...child, status: 'missing' });
-                  for (let j = i + 1; j < children.length; j++) {
-                    results.push({ ...children[j], status: 'skipped' });
+                  const oldTip = await getOldTip(child.branch);
+                  if (!oldTip) {
+                    results.push({ ...child, status: 'missing' });
+                    continue;
                   }
-                  break;
-                }
 
-                await ensureLocalBranch(child.branch);
+                  await ensureLocalBranch(child.branch);
 
-                const rs = await doRestack(
-                  child.branch, `origin/${baseBranch}`, prevSkip
-                );
-                if (!rs.ok) {
-                  results.push({
-                    ...child, status: 'conflict', oldTip, error: rs.error,
-                  });
-                  for (let j = i + 1; j < children.length; j++) {
-                    results.push({ ...children[j], status: 'skipped' });
+                  const rs = await doRestack(
+                    child.branch, `origin/${baseBranch}`, parentSkipSha
+                  );
+                  if (!rs.ok) {
+                    results.push({
+                      ...child, status: 'conflict', oldTip, error: rs.error,
+                    });
+                    continue;
                   }
-                  break;
-                }
 
-                await github.rest.pulls
-                  .update({
-                    owner, repo, pull_number: child.pr, base: baseBranch,
-                  })
-                  .catch(() => {});
+                  await github.rest.pulls
+                    .update({
+                      owner, repo, pull_number: child.pr, base: baseBranch,
+                    })
+                    .catch(() => {});
 
-                console.log(
-                  `Waiting for CI on #${child.pr} (${child.branch})...`
-                );
-                const merged = await tryMerge(child.pr, mergeMethod, 20);
+                  console.log(
+                    `Waiting for CI on #${child.pr} (${child.branch})...`
+                  );
+                  const merged = await tryMerge(child.pr, mergeMethod, 20);
 
-                if (!merged.ok) {
-                  results.push({
-                    ...child,
-                    status: 'merge_failed',
-                    oldTip,
-                    error: merged.error,
-                  });
-                  for (let j = i + 1; j < children.length; j++) {
-                    results.push({ ...children[j], status: 'skipped' });
+                  if (!merged.ok) {
+                    results.push({
+                      ...child,
+                      status: 'merge_failed',
+                      oldTip,
+                      error: merged.error,
+                    });
+                    continue;
                   }
-                  break;
-                }
 
-                results.push({ ...child, status: 'merged', oldTip });
-                prevSkip = oldTip;
+                  results.push({ ...child, status: 'merged', oldTip });
+
+                  // 이 자식의 자식들을 재귀적으로 처리
+                  const { meta: childMeta } = await getStackMeta(child.pr);
+                  if (childMeta?.children?.length) {
+                    await mergeChildren(childMeta.children, oldTip);
+                  }
+                }
               }
+
+              await mergeChildren(children, pr.head.sha);
 
               const allMerged = results.every(r => r.status === 'merged');
               const mergedCount =
                 results.filter(r => r.status === 'merged').length + 1;
-              const total = children.length + 1;
+              const total = results.length + 1;
 
               const rows = results.map(r => {
                 const st = {
