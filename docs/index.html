@@ -408,6 +408,115 @@
       font-weight: 600;
     }
 
+    /* Command Cards */
+    .command-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .command-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      transition: all 0.3s ease;
+    }
+
+    .command-card:hover {
+      border-color: var(--purple);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .command-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .command-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--purple);
+    }
+
+    .command-badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 100px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .command-badge-safe {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .command-badge-write {
+      background: rgba(139, 92, 246, 0.15);
+      color: var(--purple);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
+    .command-desc {
+      color: var(--text-dim);
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .command-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .command-detail-item {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 1rem;
+      font-size: 0.9rem;
+      align-items: start;
+    }
+
+    .command-detail-label {
+      color: var(--text-dim);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      padding-top: 0.15rem;
+    }
+
+    .command-example {
+      margin-top: 0.5rem;
+    }
+
+    .command-example pre {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .command-example code {
+      font-size: 0.8rem;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 768px) {
+      .command-detail-item {
+        grid-template-columns: 1fr;
+        gap: 0.25rem;
+      }
+    }
+
     /* How It Works */
     .diagram {
       background: var(--surface);
@@ -631,43 +740,103 @@
   <section id="commands">
     <div class="container">
       <h2>Commands</h2>
-      <p class="section-intro">Comment on a PR to trigger actions. Alias <code>st</code> also works (e.g., <code>st merge</code>).</p>
+      <p class="section-intro">Comment on a PR to trigger actions. All commands support the short alias <code>st</code> (e.g., <code>st merge</code>).</p>
 
-      <div class="commands-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Command</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>stack merge</td>
-              <td>Merge this PR and restack child branches</td>
-            </tr>
-            <tr>
-              <td>stack merge-all</td>
-              <td>Merge the entire stack in order (all PRs must be approved)</td>
-            </tr>
-            <tr>
-              <td>stack merge-all --force</td>
-              <td>Merge the entire stack (skip approval check)</td>
-            </tr>
-            <tr>
-              <td>stack restack</td>
-              <td>Rebase child branches without merging</td>
-            </tr>
-            <tr>
-              <td>stack discover</td>
-              <td>Auto-discover stack tree from base branches and update metadata</td>
-            </tr>
-            <tr>
-              <td>stack help</td>
-              <td>Show usage guide</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="command-cards">
+        <div class="command-card">
+          <div class="command-header">
+            <code class="command-name">stack discover</code>
+            <span class="command-badge command-badge-safe">API only</span>
+          </div>
+          <p class="command-desc">Auto-detect the stack tree by scanning open PRs' base branch relationships. No manual metadata setup needed.</p>
+          <div class="command-details">
+            <div class="command-detail-item">
+              <span class="command-detail-label">When to use</span>
+              <span>After creating stacked PRs, or when you re-target a PR's base branch to form a new stack</span>
+            </div>
+            <div class="command-detail-item">
+              <span class="command-detail-label">What it does</span>
+              <span>Recursively finds child PRs via base branch, updates metadata in each PR body, and reports if any children need restacking</span>
+            </div>
+            <div class="command-detail-item">
+              <span class="command-detail-label">Example output</span>
+              <div class="command-example">
+                <pre><code>- #1 (<span class="code-string">feat-auth</span>) → #2
+  - #2 (<span class="code-string">feat-auth-ui</span>) → #3 <span class="code-property">⚠️</span>
+    - #3 (<span class="code-string">feat-auth-tests</span>)
+
+<span class="code-property">⚠️ Some PRs are out of date.</span>
+<span class="code-property">Run st restack on the parent PR.</span></code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="command-card">
+          <div class="command-header">
+            <code class="command-name">stack restack</code>
+            <span class="command-badge command-badge-write">git push</span>
+          </div>
+          <p class="command-desc">Rebase all direct child branches onto this PR's latest head. Use after pushing new commits to a parent PR.</p>
+          <div class="command-details">
+            <div class="command-detail-item">
+              <span class="command-detail-label">When to use</span>
+              <span>After updating a parent PR with new commits, or when <code>st discover</code> shows ⚠️ indicators</span>
+            </div>
+            <div class="command-detail-item">
+              <span class="command-detail-label">What it does</span>
+              <span>Runs <code>git rebase --onto</code> for each child branch and force-pushes. Posts conflict resolution commands if rebase fails</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="command-card">
+          <div class="command-header">
+            <code class="command-name">stack merge</code>
+            <span class="command-badge command-badge-write">merge + push</span>
+          </div>
+          <p class="command-desc">Merge this PR into its base branch, then automatically restack all child branches.</p>
+          <div class="command-details">
+            <div class="command-detail-item">
+              <span class="command-detail-label">When to use</span>
+              <span>When this PR is approved and ready to merge, but child PRs still need more work</span>
+            </div>
+            <div class="command-detail-item">
+              <span class="command-detail-label">What it does</span>
+              <span>Squash-merges the PR, rebases children onto the base branch (e.g., <code>main</code>), and updates each child's base branch reference</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="command-card">
+          <div class="command-header">
+            <code class="command-name">stack merge-all</code>
+            <span class="command-badge command-badge-write">merge + push</span>
+          </div>
+          <p class="command-desc">Merge the entire stack in DFS order. Each PR is rebased, merged, then its children are processed.</p>
+          <div class="command-details">
+            <div class="command-detail-item">
+              <span class="command-detail-label">When to use</span>
+              <span>When the entire stack is reviewed and approved — merge everything at once</span>
+            </div>
+            <div class="command-detail-item">
+              <span class="command-detail-label">What it does</span>
+              <span>Checks approval status on all PRs, then sequentially rebases and merges each one. Retries up to 10 min per PR for CI to pass</span>
+            </div>
+            <div class="command-detail-item">
+              <span class="command-detail-label">Options</span>
+              <span>Add <code>--force</code> to skip the approval check (e.g., <code>st merge-all --force</code>)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="command-card">
+          <div class="command-header">
+            <code class="command-name">stack help</code>
+            <span class="command-badge command-badge-safe">API only</span>
+          </div>
+          <p class="command-desc">Show available commands and the current stack structure detected from metadata.</p>
+        </div>
       </div>
     </div>
   </section>
