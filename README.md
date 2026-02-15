@@ -29,7 +29,7 @@ permissions:
 
 jobs:
   staqd:
-    uses: siner308/staqd/.github/workflows/staqd.yml@v0.1
+    uses: siner308/staqd/.github/workflows/staqd.yml@v0.2
 ```
 
 That's it. The reusable workflow handles everything internally: guide comments, base branch resolution, concurrency groups, and command execution.
@@ -39,7 +39,7 @@ That's it. The reusable workflow handles everything internally: guide comments, 
 ```yaml
 jobs:
   staqd:
-    uses: siner308/staqd/.github/workflows/staqd.yml@v0.1
+    uses: siner308/staqd/.github/workflows/staqd.yml@v0.2
     with:
       app-id: ${{ vars.STAQD_APP_ID }}
     secrets:
@@ -108,7 +108,7 @@ jobs:
       pull-requests: write
       issues: write
     steps:
-      - uses: siner308/staqd@v0.1
+      - uses: siner308/staqd@v0.2
 
   # Resolve base branch for concurrency group
   resolve-base:
@@ -146,7 +146,7 @@ jobs:
       issues: write
       checks: read
     steps:
-      - uses: siner308/staqd@v0.1
+      - uses: siner308/staqd@v0.2
 ```
 
 #### Composite Action Inputs
