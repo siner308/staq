@@ -46,6 +46,18 @@ runs:
           const guide = require(`${process.env.ACTION_PATH}/src/guide.js`);
           await guide({ github, context });
 
+    # ── PR merged: update orphaned children ──
+    - name: Handle merged parent
+      if: github.event_name == 'pull_request' && github.event.action == 'closed'
+      uses: actions/github-script@v7
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+      with:
+        github-token: ${{ steps.app-token.outputs.token || inputs.token }}
+        script: |
+          const orphan = require(`${process.env.ACTION_PATH}/src/orphan.js`);
+          await orphan({ github, context });
+
     # ── Comment: parse stack command ──
     - name: Parse command
       id: cmd

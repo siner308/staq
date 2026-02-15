@@ -713,7 +713,7 @@
 
 <span class="code-keyword">on:</span>
   <span class="code-property">pull_request:</span>
-    <span class="code-property">types:</span> [opened, edited]
+    <span class="code-property">types:</span> [opened, edited, closed]
   <span class="code-property">issue_comment:</span>
     <span class="code-property">types:</span> [created]
 
@@ -828,6 +828,34 @@
             <code class="command-name">stack help</code>
           </div>
           <p class="command-desc">Show available commands and the current stack structure detected from metadata.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Auto-update -->
+  <section id="auto-update">
+    <div class="container">
+      <h2>Auto-update on Manual Merge</h2>
+      <p class="section-intro">Merged a parent PR through GitHub UI instead of <code>st merge</code>? Staqd has you covered.</p>
+
+      <div class="command-card">
+        <p class="command-desc" style="margin-bottom: 0;">
+          When a parent PR with stack metadata is merged (by any method), Staqd automatically detects the <code>closed</code> event and:
+        </p>
+        <div class="command-details">
+          <div class="command-detail-item">
+            <span class="command-detail-label">Base update</span>
+            <span>Each child PR's base branch is re-targeted to the parent's base (e.g., <code>main</code>), preventing orphaned PRs</span>
+          </div>
+          <div class="command-detail-item">
+            <span class="command-detail-label">Notification</span>
+            <span>A comment is posted on each child PR with the updated base and a reminder to run <code>st restack</code> if needed</span>
+          </div>
+          <div class="command-detail-item">
+            <span class="command-detail-label">Requirement</span>
+            <span>Add <code>closed</code> to your workflow's <code>pull_request.types</code>: <code>[opened, edited, closed]</code></span>
+          </div>
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@ name: Staqd (dogfood)
 
 on:
   pull_request:
-    types: [opened, edited]
+    types: [opened, edited, closed]
   issue_comment:
     types: [created]
 

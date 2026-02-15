@@ -17,7 +17,7 @@ name: Staqd
 
 on:
   pull_request:
-    types: [opened, edited]
+    types: [opened, edited, closed]
   issue_comment:
     types: [created]
 
@@ -95,7 +95,7 @@ name: Staqd
 
 on:
   pull_request:
-    types: [opened, edited]
+    types: [opened, edited, closed]
   issue_comment:
     types: [created]
 
@@ -410,6 +410,21 @@ Commands targeting the same base branch (e.g. `main`) are serialized to prevent 
 | Tree stacks | Supported (siblings) | Supported (DAG) | Linear only |
 | Merge queue | Comment-based | Dedicated UI | None |
 | External dependency | None | SaaS | None |
+
+## Auto-update on Manual Merge
+
+When a parent PR is merged through the GitHub UI (instead of `st merge`), Staqd automatically:
+
+1. **Updates each child PR's base branch** to the parent's base (e.g., `main`)
+2. **Posts a notification comment** on each child PR
+
+This prevents child PRs from becoming orphaned with a deleted base branch. The child PR may still need rebasing — run `st restack` on the child if needed.
+
+> **Requires** `closed` in your workflow's `pull_request.types`:
+> ```yaml
+> pull_request:
+>   types: [opened, edited, closed]
+> ```
 
 ## Troubleshooting
 
