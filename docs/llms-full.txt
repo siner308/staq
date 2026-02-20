@@ -1,0 +1,225 @@
+# Staqd
+
+/stakt/ — like "stacked"
+
+Stacked PR merge queue powered by GitHub Actions and PR comments.
+No CLI to install. No SaaS dependency. One workflow file is all you need.
+
+## Quick Start
+
+Add this workflow to `.github/workflows/staqd.yml`:
+
+```yaml
+name: Staqd
+
+on:
+  pull_request:
+    types: [opened, edited, closed]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  checks: read
+
+jobs:
+  staqd:
+    uses: siner308/staqd/.github/workflows/staqd.yml@v0.3
+```
+
+That's it. The reusable workflow handles everything internally: guide comments, base branch resolution, concurrency groups, and command execution.
+
+### With GitHub App (recommended for CI auto-trigger)
+
+```yaml
+jobs:
+  staqd:
+    uses: siner308/staqd/.github/workflows/staqd.yml@v0.3
+    with:
+      app-id: ${{ vars.STAQD_APP_ID }}
+    secrets:
+      app-private-key: ${{ secrets.STAQD_APP_PRIVATE_KEY }}
+```
+
+Why a GitHub App? `GITHUB_TOKEN` pushes don't trigger other workflows (GitHub security policy). If your CI needs to run after a restack force-push, use a GitHub App.
+
+### Reusable Workflow Inputs
+
+- `app-id`: GitHub App ID. Used with `app-private-key` to generate an installation token. (Optional)
+- `runs-on`: Runner label for all jobs. Default: `ubuntu-latest`. (Optional)
+- `timeout-minutes`: Timeout for command job. Default: `30`. (Optional)
+
+### Reusable Workflow Secrets
+
+- `app-private-key`: GitHub App private key. Used with `app-id` input. (Optional)
+
+## Commands
+
+Comment on a PR to trigger:
+
+- `stack merge` (`st merge`) — Merge this PR and restack child branches
+- `stack merge-all` (`st merge-all`) — Merge the entire stack in order (all PRs must be approved)
+- `stack merge-all --force` (`st merge-all --force`) — Merge the entire stack (skip approval check)
+- `stack restack` (`st restack`) — Rebase child branches without merging
+- `stack discover` (`st discover`) — Auto-discover stack tree from base branches and update metadata
+- `stack help` (`st help`) — Show usage
+
+All commands support the short alias `st` (e.g., `st merge` instead of `stack merge`).
+
+### stack discover
+
+Auto-detect the stack tree by scanning open PRs' base branch relationships. No manual metadata setup needed.
+
+- When to use: After creating stacked PRs, or when you re-target a PR's base branch to form a new stack.
+- What it does: Recursively finds child PRs via base branch, updates metadata in each PR body, and reports if any children need restacking.
+
+### stack restack
+
+Rebase all direct child branches onto this PR's latest head. Use after pushing new commits to a parent PR.
+
+- When to use: After updating a parent PR with new commits, or when `st discover` shows warning indicators.
+- What it does: Runs `git rebase --onto` for each child branch and force-pushes. Posts conflict resolution commands if rebase fails.
+
+### stack merge
+
+Merge this PR into its base branch, then automatically restack all child branches.
+
+- When to use: When this PR is approved and ready to merge, but child PRs still need more work.
+- What it does: Squash-merges the PR, rebases children onto the base branch (e.g., `main`), and updates each child's base branch reference.
+
+### stack merge-all
+
+Merge the entire stack in DFS order. Each PR is rebased, merged, then its children are processed.
+
+- When to use: When the entire stack is reviewed and approved — merge everything at once.
+- What it does: Checks approval status on all PRs, then sequentially rebases and merges each one. Retries up to 10 min per PR for CI to pass.
+- Options: Add `--force` to skip the approval check (e.g., `st merge-all --force`).
+
+### stack help
+
+Show available commands and the current stack structure detected from metadata.
+
+## Setting Up a Stack
+
+### 1. Create stacked branches
+
+```bash
+git checkout main
+git checkout -b feat-auth
+# ... make changes, push ...
+
+git checkout feat-auth
+git checkout -b feat-auth-ui
+# ... make changes, push ...
+
+git checkout feat-auth-ui
+git checkout -b feat-auth-tests
+# ... make changes, push ...
+```
+
+### 2. Create PRs with correct base branches
+
+```bash
+gh pr create --base main         --head feat-auth       --title "feat: add auth module"
+gh pr create --base feat-auth    --head feat-auth-ui    --title "feat: add auth UI"
+gh pr create --base feat-auth-ui --head feat-auth-tests --title "test: add auth tests"
+```
+
+### 3. Add stack metadata
+
+Option A: Auto-discover (recommended) — Comment `st discover` on the root PR. Staqd scans all open PRs by base branch relationships, builds the tree, and updates every PR's metadata automatically.
+
+Option B: Manual metadata — Each parent PR's body needs an HTML comment listing its direct children:
+
+```
+<!-- stack-rebase:{"children":[{"branch":"<branch>","pr":<number>}]} -->
+```
+
+Only list direct children. `merge-all` recursively follows each child's metadata.
+
+Linear stack (A -> B -> C):
+
+- PR #1 body: `<!-- stack-rebase:{"children":[{"branch":"B","pr":2}]} -->`
+- PR #2 body: `<!-- stack-rebase:{"children":[{"branch":"C","pr":3}]} -->`
+- PR #3 body: (none)
+
+Tree stack (X and Y branch from base):
+
+- PR #10 body: `<!-- stack-rebase:{"children":[{"branch":"X","pr":11},{"branch":"Y","pr":12}]} -->`
+- PR #11 body: (none)
+- PR #12 body: (none)
+
+Tree children are siblings — each rebases independently onto the same parent.
+
+### 4. Use commands
+
+```
+# During development — sync children after pushing to parent
+Comment on PR #1: "stack restack"
+
+# After review — merge the entire stack at once
+Comment on PR #1: "stack merge-all"
+```
+
+## How It Works
+
+Everything reduces to one git command:
+
+```
+git rebase --onto <new_base> <old_parent_tip_sha> <child_branch>
+```
+
+Before (feat-1 squash-merged into main):
+
+```
+main:     A---B---CD'          (C+D squashed into new commit)
+feat-2:       C---D---E---F    (still contains original C, D)
+```
+
+After rebasing:
+
+```
+git rebase --onto main <SHA_of_D> feat-2
+
+main:     A---B---CD'
+                    \
+feat-2:              E'---F'   (C, D removed; only E, F rebased)
+```
+
+The skip SHA (`old_parent_tip_sha`) comes from GitHub's PR API, which preserves `head.sha` even after merge. No database needed.
+
+## Auto-update on Manual Merge
+
+When a parent PR is merged through the GitHub UI (instead of `st merge`), Staqd automatically:
+
+1. Updates each child PR's base branch to the parent's base (e.g., `main`)
+2. Posts a notification comment on each child PR
+
+This prevents child PRs from becoming orphaned with a deleted base branch. The child PR may still need rebasing — run `st restack` on the child if needed.
+
+Requires `closed` in your workflow's `pull_request.types`: `[opened, edited, closed]`.
+
+## Comparison
+
+| | Staqd | Graphite | ghstack |
+|---|---|---|---|
+| Installation | None (workflow file) | CLI + account | CLI |
+| Stack storage | PR body HTML comments | .graphite_info + server | Commit metadata |
+| Restack trigger | PR comment | gt restack CLI | ghstack CLI |
+| Conflict resolution | Async (Actions -> local fix -> push) | Sync (terminal) | Sync (terminal) |
+| Tree stacks | Supported (siblings) | Supported (DAG) | Linear only |
+| Merge queue | Comment-based | Dedicated UI | None |
+| External dependency | None | SaaS | None |
+
+## Troubleshooting
+
+- CI doesn't run after restack push: `GITHUB_TOKEN` pushes don't trigger other workflows. Set up a GitHub App or PAT.
+- merge-all CI timeout: Default wait is ~10 min (30s x 20 retries). Increase `tryMerge` retry count for slower CI.
+- PR diff looks wrong after restack: The PR's base branch may not have been updated. `stack restack` handles this automatically, but you can manually change the base in PR settings.
+- Second PR in merge-all always fails initially: If branch protection has required checks, CI may not exist yet right after restack. `tryMerge` retries until CI is created and passes.
+
+## License
+
+MIT

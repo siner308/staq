@@ -1,0 +1,9 @@
+# Staqd
+
+> Stacked PR merge queue powered by GitHub Actions and PR comments.
+
+## Docs
+
+- [Full Documentation](https://siner308.github.io/staqd/llms-full.txt)
+- [README](https://github.com/siner308/staqd/blob/main/README.md)
+- [GitHub Repository](https://github.com/siner308/staqd)

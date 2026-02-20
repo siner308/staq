@@ -85,6 +85,170 @@
       padding: 0 var(--spacing);
     }
 
+    /* Language Toggle */
+    .lang-toggle {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      display: flex;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      overflow: hidden;
+      z-index: 100;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .lang-toggle button {
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      padding: 0.4rem 0.9rem;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: inherit;
+      font-weight: inherit;
+      transition: all 0.2s ease;
+    }
+
+    .lang-toggle button.active {
+      background: var(--purple);
+      color: white;
+    }
+
+    .lang-toggle button:hover:not(.active) {
+      color: var(--text);
+    }
+
+    /* Markdown Menu */
+    .md-menu {
+      position: fixed;
+      top: 1.5rem;
+      right: 7.5rem;
+      z-index: 100;
+    }
+
+    .md-menu-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      color: var(--text-dim);
+      padding: 0.4rem 0.9rem;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .md-menu-trigger:hover {
+      border-color: var(--purple);
+      color: var(--text);
+    }
+
+    .md-menu-trigger svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    .md-menu-chevron {
+      width: 10px !important;
+      height: 10px !important;
+      transition: transform 0.2s ease;
+    }
+
+    .md-menu.open .md-menu-chevron {
+      transform: rotate(180deg);
+    }
+
+    .md-menu-dropdown {
+      position: absolute;
+      top: calc(100% + 0.5rem);
+      right: 0;
+      min-width: 240px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.5rem;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-4px);
+      transition: all 0.2s ease;
+    }
+
+    .md-menu.open .md-menu-dropdown {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .md-menu-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      text-decoration: none;
+      color: inherit;
+      border: none;
+      background: none;
+      width: 100%;
+      font-family: inherit;
+      text-align: left;
+    }
+
+    .md-menu-item:hover {
+      background: rgba(139, 92, 246, 0.1);
+    }
+
+    .md-menu-item svg {
+      width: 18px;
+      height: 18px;
+      color: var(--text-dim);
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    .md-menu-item-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+
+    .md-menu-item-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .md-menu-item-desc {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    .md-menu-item .arrow-icon {
+      width: 12px;
+      height: 12px;
+      margin-left: auto;
+      margin-top: 0.25rem;
+      color: var(--text-dim);
+    }
+
+    @media (max-width: 768px) {
+      .md-menu {
+        right: auto;
+        left: 1.5rem;
+      }
+    }
+
     /* Hero */
     .hero {
       min-height: 100vh;
@@ -745,19 +909,51 @@
 </head>
 <body>
 
+  <!-- Language Toggle -->
+  <div class="lang-toggle">
+    <button id="lang-en" class="active" onclick="setLang('en')">EN</button>
+    <button id="lang-ko" onclick="setLang('ko')">KO</button>
+  </div>
+
+  <!-- Markdown Menu -->
+  <div class="md-menu" id="md-menu">
+    <button class="md-menu-trigger" onclick="toggleMdMenu()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 7v10"/><path d="M8 12h4l-4-5"/><path d="M16 7v10"/><path d="M12 12h4l-4 5"/></svg>
+      <span data-i18n="md.trigger">Copy page</span>
+      <svg class="md-menu-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="md-menu-dropdown">
+      <button class="md-menu-item" onclick="copyPageMarkdown()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        <div class="md-menu-item-text">
+          <span class="md-menu-item-title" data-i18n="md.copyTitle">Copy page</span>
+          <span class="md-menu-item-desc" data-i18n="md.copyDesc">Copy page as Markdown for LLMs</span>
+        </div>
+      </button>
+      <a class="md-menu-item" href="llms-full.txt" target="_blank">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <div class="md-menu-item-text">
+          <span class="md-menu-item-title" data-i18n="md.viewTitle">View as Markdown</span>
+          <span class="md-menu-item-desc" data-i18n="md.viewDesc">View this page as plain text</span>
+        </div>
+        <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+      </a>
+    </div>
+  </div>
+
   <!-- Hero Section -->
   <section class="hero">
-    <div class="hero-badge">Open Source · MIT License</div>
+    <div class="hero-badge" data-i18n="hero.badge">Open Source · MIT License</div>
     <img src="favicon.svg" alt="Staqd" width="120" height="120" style="margin-bottom: 1.5rem; animation: fadeInUp 0.8s ease-out;">
     <h1>Staqd</h1>
-    <p class="pronunciation">/stakt/ — like "stacked"</p>
-    <p class="tagline">Stacked PR merge queue powered by GitHub Actions and PR comments</p>
+    <p class="pronunciation" data-i18n="hero.pronunciation">/stakt/ — like "stacked"</p>
+    <p class="tagline" data-i18n="hero.tagline">Stacked PR merge queue powered by GitHub Actions and PR comments</p>
     <div class="hero-cta">
       <a href="https://github.com/siner308/staqd" class="btn btn-primary">
-        <span>View on GitHub</span>
+        <span data-i18n="hero.viewGithub">View on GitHub</span>
         <span>→</span>
       </a>
-      <a href="#quickstart" class="btn btn-secondary">Get Started</a>
+      <a href="#quickstart" class="btn btn-secondary" data-i18n="hero.getStarted">Get Started</a>
     </div>
     <div class="scroll-hint">↓</div>
   </section>
@@ -765,23 +961,23 @@
   <!-- Zero Setup -->
   <section id="features">
     <div class="container">
-      <h2 id="features-heading">Zero Setup Tax<a href="#features-heading" class="anchor-link" aria-label="Link to this section">#</a></h2>
-      <p class="section-intro">No CLI to install. No SaaS dependency. One workflow file is all you need.</p>
+      <h2 id="features-heading"><span data-i18n="features.heading">Zero Setup Tax</span><a href="#features-heading" class="anchor-link" aria-label="Link to this section">#</a></h2>
+      <p class="section-intro" data-i18n="features.intro">No CLI to install. No SaaS dependency. One workflow file is all you need.</p>
       <div class="badges">
         <div class="badge-card">
           <div class="badge-icon">🚫</div>
-          <h3>No CLI</h3>
-          <p>Pure GitHub Actions. No binary to install, update, or maintain across your team.</p>
+          <h3 data-i18n="features.noCli">No CLI</h3>
+          <p data-i18n="features.noCliDesc">Pure GitHub Actions. No binary to install, update, or maintain across your team.</p>
         </div>
         <div class="badge-card">
           <div class="badge-icon">☁️</div>
-          <h3>No SaaS</h3>
-          <p>No external service, no account creation, no API quotas. Your repo, your control.</p>
+          <h3 data-i18n="features.noSaas">No SaaS</h3>
+          <p data-i18n="features.noSaasDesc">No external service, no account creation, no API quotas. Your repo, your control.</p>
         </div>
         <div class="badge-card">
           <div class="badge-icon">📄</div>
-          <h3>Just YAML</h3>
-          <p>One workflow file. Copy, commit, done. Stack metadata lives in PR body comments.</p>
+          <h3 data-i18n="features.justYaml">Just YAML</h3>
+          <p data-i18n="features.justYamlDesc">One workflow file. Copy, commit, done. Stack metadata lives in PR body comments.</p>
         </div>
       </div>
     </div>
@@ -790,13 +986,13 @@
   <!-- Quick Start -->
   <section id="quickstart">
     <div class="container">
-      <h2 id="quickstart-heading">Quick Start<a href="#quickstart-heading" class="anchor-link" aria-label="Link to this section">#</a></h2>
-      <p class="section-intro">Add this workflow to <code>.github/workflows/staqd.yml</code></p>
+      <h2 id="quickstart-heading"><span data-i18n="quickstart.heading">Quick Start</span><a href="#quickstart-heading" class="anchor-link" aria-label="Link to this section">#</a></h2>
+      <p class="section-intro" data-i18n-html="quickstart.intro">Add this workflow to <code>.github/workflows/staqd.yml</code></p>
 
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">YAML</span>
-          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <button class="copy-btn" data-i18n="common.copy" onclick="copyCode(this)">Copy</button>
         </div>
         <pre><code><span class="code-keyword">name:</span> Staqd
 
@@ -822,8 +1018,8 @@
   <!-- Commands -->
   <section id="commands">
     <div class="container">
-      <h2 id="commands-heading">Commands<a href="#commands-heading" class="anchor-link" aria-label="Link to this section">#</a></h2>
-      <p class="section-intro">Comment on a PR to trigger actions. All commands support the short alias <code>st</code> (e.g., <code>st merge</code>).</p>
+      <h2 id="commands-heading"><span data-i18n="commands.heading">Commands</span><a href="#commands-heading" class="anchor-link" aria-label="Link to this section">#</a></h2>
+      <p class="section-intro" data-i18n-html="commands.intro">Comment on a PR to trigger actions. All commands support the short alias <code>st</code> (e.g., <code>st merge</code>).</p>
 
       <div class="command-cards">
         <div id="cmd-discover" class="command-card">
@@ -831,18 +1027,18 @@
             <code class="command-name">stack discover</code>
             <a href="#cmd-discover" class="cmd-anchor" aria-label="Link to this command">#</a>
           </div>
-          <p class="command-desc">Auto-detect the stack tree by scanning open PRs' base branch relationships. No manual metadata setup needed.</p>
+          <p class="command-desc" data-i18n="cmd.discover.desc">Auto-detect the stack tree by scanning open PRs' base branch relationships. No manual metadata setup needed.</p>
           <div class="command-details">
             <div class="command-detail-item">
-              <span class="command-detail-label">When to use</span>
-              <span>After creating stacked PRs, or when you re-target a PR's base branch to form a new stack</span>
+              <span class="command-detail-label" data-i18n="common.whenToUse">When to use</span>
+              <span data-i18n="cmd.discover.when">After creating stacked PRs, or when you re-target a PR's base branch to form a new stack</span>
             </div>
             <div class="command-detail-item">
-              <span class="command-detail-label">What it does</span>
-              <span>Recursively finds child PRs via base branch, updates metadata in each PR body, and reports if any children need restacking</span>
+              <span class="command-detail-label" data-i18n="common.whatItDoes">What it does</span>
+              <span data-i18n="cmd.discover.what">Recursively finds child PRs via base branch, updates metadata in each PR body, and reports if any children need restacking</span>
             </div>
             <div class="command-detail-item">
-              <span class="command-detail-label">Example output</span>
+              <span class="command-detail-label" data-i18n="common.exampleOutput">Example output</span>
               <div class="command-example">
                 <pre><code>- #1 (<span class="code-string">feat-auth</span>) → #2
   - #2 (<span class="code-string">feat-auth-ui</span>) → #3 <span class="code-property">⚠️</span>
@@ -861,15 +1057,15 @@
             <span class="command-badge command-badge-write">push</span>
             <a href="#cmd-restack" class="cmd-anchor" aria-label="Link to this command">#</a>
           </div>
-          <p class="command-desc">Rebase all direct child branches onto this PR's latest head. Use after pushing new commits to a parent PR.</p>
+          <p class="command-desc" data-i18n="cmd.restack.desc">Rebase all direct child branches onto this PR's latest head. Use after pushing new commits to a parent PR.</p>
           <div class="command-details">
             <div class="command-detail-item">
-              <span class="command-detail-label">When to use</span>
-              <span>After updating a parent PR with new commits, or when <code>st discover</code> shows ⚠️ indicators</span>
+              <span class="command-detail-label" data-i18n="common.whenToUse">When to use</span>
+              <span data-i18n-html="cmd.restack.when">After updating a parent PR with new commits, or when <code>st discover</code> shows ⚠️ indicators</span>
             </div>
             <div class="command-detail-item">
-              <span class="command-detail-label">What it does</span>
-              <span>Runs <code>git rebase --onto</code> for each child branch and force-pushes. Posts conflict resolution commands if rebase fails</span>
+              <span class="command-detail-label" data-i18n="common.whatItDoes">What it does</span>
+              <span data-i18n-html="cmd.restack.what">Runs <code>git rebase --onto</code> for each child branch and force-pushes. Posts conflict resolution commands if rebase fails</span>
             </div>
           </div>
         </div>
@@ -880,15 +1076,15 @@
             <span class="command-badge command-badge-write">merge + push</span>
             <a href="#cmd-merge" class="cmd-anchor" aria-label="Link to this command">#</a>
           </div>
-          <p class="command-desc">Merge this PR into its base branch, then automatically restack all child branches.</p>
+          <p class="command-desc" data-i18n="cmd.merge.desc">Merge this PR into its base branch, then automatically restack all child branches.</p>
           <div class="command-details">
             <div class="command-detail-item">
-              <span class="command-detail-label">When to use</span>
-              <span>When this PR is approved and ready to merge, but child PRs still need more work</span>
+              <span class="command-detail-label" data-i18n="common.whenToUse">When to use</span>
+              <span data-i18n="cmd.merge.when">When this PR is approved and ready to merge, but child PRs still need more work</span>
             </div>
             <div class="command-detail-item">
-              <span class="command-detail-label">What it does</span>
-              <span>Squash-merges the PR, rebases children onto the base branch (e.g., <code>main</code>), and updates each child's base branch reference</span>
+              <span class="command-detail-label" data-i18n="common.whatItDoes">What it does</span>
+              <span data-i18n-html="cmd.merge.what">Squash-merges the PR, rebases children onto the base branch (e.g., <code>main</code>), and updates each child's base branch reference</span>
             </div>
           </div>
         </div>
@@ -899,19 +1095,19 @@
             <span class="command-badge command-badge-write">merge + push</span>
             <a href="#cmd-merge-all" class="cmd-anchor" aria-label="Link to this command">#</a>
           </div>
-          <p class="command-desc">Merge the entire stack in DFS order. Each PR is rebased, merged, then its children are processed.</p>
+          <p class="command-desc" data-i18n="cmd.mergeAll.desc">Merge the entire stack in DFS order. Each PR is rebased, merged, then its children are processed.</p>
           <div class="command-details">
             <div class="command-detail-item">
-              <span class="command-detail-label">When to use</span>
-              <span>When the entire stack is reviewed and approved — merge everything at once</span>
+              <span class="command-detail-label" data-i18n="common.whenToUse">When to use</span>
+              <span data-i18n="cmd.mergeAll.when">When the entire stack is reviewed and approved — merge everything at once</span>
             </div>
             <div class="command-detail-item">
-              <span class="command-detail-label">What it does</span>
-              <span>Checks approval status on all PRs, then sequentially rebases and merges each one. Retries up to 10 min per PR for CI to pass</span>
+              <span class="command-detail-label" data-i18n="common.whatItDoes">What it does</span>
+              <span data-i18n="cmd.mergeAll.what">Checks approval status on all PRs, then sequentially rebases and merges each one. Retries up to 10 min per PR for CI to pass</span>
             </div>
             <div class="command-detail-item">
-              <span class="command-detail-label">Options</span>
-              <span>Add <code>--force</code> to skip the approval check (e.g., <code>st merge-all --force</code>)</span>
+              <span class="command-detail-label" data-i18n="common.options">Options</span>
+              <span data-i18n-html="cmd.mergeAll.options">Add <code>--force</code> to skip the approval check (e.g., <code>st merge-all --force</code>)</span>
             </div>
           </div>
         </div>
@@ -921,7 +1117,7 @@
             <code class="command-name">stack help</code>
             <a href="#cmd-help" class="cmd-anchor" aria-label="Link to this command">#</a>
           </div>
-          <p class="command-desc">Show available commands and the current stack structure detected from metadata.</p>
+          <p class="command-desc" data-i18n="cmd.help.desc">Show available commands and the current stack structure detected from metadata.</p>
         </div>
       </div>
     </div>
@@ -930,25 +1126,25 @@
   <!-- Auto-update -->
   <section id="auto-update">
     <div class="container">
-      <h2 id="auto-update-heading">Auto-update on Manual Merge<a href="#auto-update-heading" class="anchor-link" aria-label="Link to this section">#</a></h2>
-      <p class="section-intro">Merged a parent PR through GitHub UI instead of <code>st merge</code>? Staqd has you covered.</p>
+      <h2 id="auto-update-heading"><span data-i18n="autoupdate.heading">Auto-update on Manual Merge</span><a href="#auto-update-heading" class="anchor-link" aria-label="Link to this section">#</a></h2>
+      <p class="section-intro" data-i18n-html="autoupdate.intro">Merged a parent PR through GitHub UI instead of <code>st merge</code>? Staqd has you covered.</p>
 
       <div class="command-card">
-        <p class="command-desc" style="margin-bottom: 0;">
+        <p class="command-desc" style="margin-bottom: 0;" data-i18n-html="autoupdate.desc">
           When a parent PR with stack metadata is merged (by any method), Staqd automatically detects the <code>closed</code> event and:
         </p>
         <div class="command-details">
           <div class="command-detail-item">
-            <span class="command-detail-label">Base update</span>
-            <span>Each child PR's base branch is re-targeted to the parent's base (e.g., <code>main</code>), preventing orphaned PRs</span>
+            <span class="command-detail-label" data-i18n="common.baseUpdate">Base update</span>
+            <span data-i18n-html="autoupdate.baseUpdate">Each child PR's base branch is re-targeted to the parent's base (e.g., <code>main</code>), preventing orphaned PRs</span>
           </div>
           <div class="command-detail-item">
-            <span class="command-detail-label">Notification</span>
-            <span>A comment is posted on each child PR with the updated base and a reminder to run <code>st restack</code> if needed</span>
+            <span class="command-detail-label" data-i18n="common.notification">Notification</span>
+            <span data-i18n-html="autoupdate.notification">A comment is posted on each child PR with the updated base and a reminder to run <code>st restack</code> if needed</span>
           </div>
           <div class="command-detail-item">
-            <span class="command-detail-label">Requirement</span>
-            <span>Add <code>closed</code> to your workflow's <code>pull_request.types</code>: <code>[opened, edited, closed]</code></span>
+            <span class="command-detail-label" data-i18n="common.requirement">Requirement</span>
+            <span data-i18n-html="autoupdate.requirement">Add <code>closed</code> to your workflow's <code>pull_request.types</code>: <code>[opened, edited, closed]</code></span>
           </div>
         </div>
       </div>
@@ -958,19 +1154,19 @@
   <!-- How It Works -->
   <section id="how-it-works">
     <div class="container">
-      <h2 id="how-it-works-heading">How It Works<a href="#how-it-works-heading" class="anchor-link" aria-label="Link to this section">#</a></h2>
-      <p class="section-intro">Everything reduces to one elegant git command:</p>
+      <h2 id="how-it-works-heading"><span data-i18n="howitworks.heading">How It Works</span><a href="#how-it-works-heading" class="anchor-link" aria-label="Link to this section">#</a></h2>
+      <p class="section-intro" data-i18n="howitworks.intro">Everything reduces to one elegant git command:</p>
 
       <div class="code-block">
         <pre><code>git rebase --onto &lt;new_base&gt; &lt;old_parent_tip_sha&gt; &lt;child_branch&gt;</code></pre>
       </div>
 
       <div class="diagram">
-        <span class="diagram-label">Before (feat-1 squash-merged into main):</span>
+        <span class="diagram-label" data-i18n="howitworks.diagramBefore">Before (feat-1 squash-merged into main):</span>
         <pre>main:     A───B───CD'          <span class="code-comment">(C+D squashed into new commit)</span>
 feat-2:       C───D───E───F    <span class="code-comment">(still contains original C, D)</span></pre>
 
-        <span class="diagram-label" style="margin-top: 2rem;">After rebasing:</span>
+        <span class="diagram-label" style="margin-top: 2rem;" data-i18n="howitworks.diagramAfter">After rebasing:</span>
         <pre>git rebase --onto main &lt;SHA_of_D&gt; feat-2
 
 main:     A───B───CD'
@@ -978,7 +1174,7 @@ main:     A───B───CD'
 feat-2:              E'───F'   <span class="code-comment">(C, D removed; only E, F rebased)</span></pre>
       </div>
 
-      <p style="color: var(--text-dim); margin-top: 2rem;">
+      <p style="color: var(--text-dim); margin-top: 2rem;" data-i18n-html="howitworks.explanation">
         The skip SHA (<code>old_parent_tip_sha</code>) comes from GitHub's PR API, which preserves <code>head.sha</code> even after merge. No database needed.
       </p>
     </div>
@@ -987,8 +1183,8 @@ feat-2:              E'───F'   <span class="code-comment">(C, D removed; o
   <!-- Comparison -->
   <section id="comparison">
     <div class="container">
-      <h2 id="comparison-heading">Comparison<a href="#comparison-heading" class="anchor-link" aria-label="Link to this section">#</a></h2>
-      <p class="section-intro">How Staqd compares to other stacked PR tools</p>
+      <h2 id="comparison-heading"><span data-i18n="comparison.heading">Comparison</span><a href="#comparison-heading" class="anchor-link" aria-label="Link to this section">#</a></h2>
+      <p class="section-intro" data-i18n="comparison.intro">How Staqd compares to other stacked PR tools</p>
 
       <div class="comparison">
         <div class="commands-table">
@@ -1003,46 +1199,46 @@ feat-2:              E'───F'   <span class="code-comment">(C, D removed; o
             </thead>
             <tbody>
               <tr>
-                <td>Installation</td>
-                <td class="highlight">None (workflow file)</td>
-                <td>CLI + account</td>
+                <td data-i18n="comparison.installation">Installation</td>
+                <td class="highlight" data-i18n="comparison.staqd.installation">None (workflow file)</td>
+                <td data-i18n="comparison.graphite.installation">CLI + account</td>
                 <td>CLI</td>
               </tr>
               <tr>
-                <td>Stack storage</td>
-                <td class="highlight">PR body HTML comments</td>
-                <td>.graphite_info + server</td>
-                <td>Commit metadata</td>
+                <td data-i18n="comparison.stackStorage">Stack storage</td>
+                <td class="highlight" data-i18n="comparison.staqd.storage">PR body HTML comments</td>
+                <td data-i18n="comparison.graphite.storage">.graphite_info + server</td>
+                <td data-i18n="comparison.ghstack.storage">Commit metadata</td>
               </tr>
               <tr>
-                <td>Restack trigger</td>
-                <td class="highlight">PR comment</td>
+                <td data-i18n="comparison.restackTrigger">Restack trigger</td>
+                <td class="highlight" data-i18n="comparison.staqd.trigger">PR comment</td>
                 <td>gt restack CLI</td>
                 <td>ghstack CLI</td>
               </tr>
               <tr>
-                <td>Conflict resolution</td>
-                <td class="highlight">Async (Actions → local fix → push)</td>
-                <td>Sync (terminal)</td>
-                <td>Sync (terminal)</td>
+                <td data-i18n="comparison.conflictResolution">Conflict resolution</td>
+                <td class="highlight" data-i18n="comparison.staqd.conflict">Async (Actions → local fix → push)</td>
+                <td data-i18n="comparison.graphite.conflict">Sync (terminal)</td>
+                <td data-i18n="comparison.ghstack.conflict">Sync (terminal)</td>
               </tr>
               <tr>
-                <td>Tree stacks</td>
-                <td class="highlight">Supported (siblings)</td>
-                <td>Supported (DAG)</td>
-                <td>Linear only</td>
+                <td data-i18n="comparison.treeStacks">Tree stacks</td>
+                <td class="highlight" data-i18n="comparison.staqd.tree">Supported (siblings)</td>
+                <td data-i18n="comparison.graphite.tree">Supported (DAG)</td>
+                <td data-i18n="comparison.ghstack.tree">Linear only</td>
               </tr>
               <tr>
-                <td>Merge queue</td>
-                <td class="highlight">Comment-based</td>
-                <td>Dedicated UI</td>
-                <td>None</td>
+                <td data-i18n="comparison.mergeQueue">Merge queue</td>
+                <td class="highlight" data-i18n="comparison.staqd.mergeQueue">Comment-based</td>
+                <td data-i18n="comparison.graphite.mergeQueue">Dedicated UI</td>
+                <td data-i18n="comparison.ghstack.mergeQueue">None</td>
               </tr>
               <tr>
-                <td>External dependency</td>
-                <td class="highlight">None</td>
+                <td data-i18n="comparison.externalDep">External dependency</td>
+                <td class="highlight" data-i18n="comparison.staqd.external">None</td>
                 <td>SaaS</td>
-                <td>None</td>
+                <td data-i18n="comparison.ghstack.external">None</td>
               </tr>
             </tbody>
           </table>
@@ -1057,11 +1253,11 @@ feat-2:              E'───F'   <span class="code-comment">(C, D removed; o
       <div class="footer-content">
         <div class="footer-links">
           <a href="https://github.com/siner308/staqd">GitHub</a>
-          <a href="https://github.com/siner308/staqd/blob/main/README.md">Documentation</a>
-          <a href="https://github.com/siner308/staqd/issues">Issues</a>
-          <a href="https://github.com/siner308/staqd/blob/main/LICENSE">License</a>
+          <a href="https://github.com/siner308/staqd/blob/main/README.md" data-i18n="footer.docs">Documentation</a>
+          <a href="https://github.com/siner308/staqd/issues" data-i18n="footer.issues">Issues</a>
+          <a href="https://github.com/siner308/staqd/blob/main/LICENSE" data-i18n="footer.license">License</a>
         </div>
-        <p class="footer-copy">
+        <p class="footer-copy" data-i18n-html="footer.copy">
           MIT License © 2025 siner308 · Built with ❤️ for developers who stack PRs
         </p>
       </div>
@@ -1069,17 +1265,287 @@ feat-2:              E'───F'   <span class="code-comment">(C, D removed; o
   </footer>
 
   <!-- Copy toast notification -->
-  <div class="copy-toast" id="copy-toast">Link copied!</div>
+  <div class="copy-toast" id="copy-toast" data-i18n="toast.linkCopied">Link copied!</div>
 
   <script>
+    // i18n translations
+    var translations = {
+      en: {
+        'hero.badge': 'Open Source · MIT License',
+        'hero.pronunciation': '/stakt/ — like "stacked"',
+        'hero.tagline': 'Stacked PR merge queue powered by GitHub Actions and PR comments',
+        'hero.viewGithub': 'View on GitHub',
+        'hero.getStarted': 'Get Started',
+
+        'features.heading': 'Zero Setup Tax',
+        'features.intro': 'No CLI to install. No SaaS dependency. One workflow file is all you need.',
+        'features.noCli': 'No CLI',
+        'features.noCliDesc': 'Pure GitHub Actions. No binary to install, update, or maintain across your team.',
+        'features.noSaas': 'No SaaS',
+        'features.noSaasDesc': 'No external service, no account creation, no API quotas. Your repo, your control.',
+        'features.justYaml': 'Just YAML',
+        'features.justYamlDesc': 'One workflow file. Copy, commit, done. Stack metadata lives in PR body comments.',
+
+        'quickstart.heading': 'Quick Start',
+        'quickstart.intro': 'Add this workflow to <code>.github/workflows/staqd.yml</code>',
+
+        'commands.heading': 'Commands',
+        'commands.intro': 'Comment on a PR to trigger actions. All commands support the short alias <code>st</code> (e.g., <code>st merge</code>).',
+
+        'cmd.discover.desc': "Auto-detect the stack tree by scanning open PRs' base branch relationships. No manual metadata setup needed.",
+        'cmd.discover.when': "After creating stacked PRs, or when you re-target a PR's base branch to form a new stack",
+        'cmd.discover.what': "Recursively finds child PRs via base branch, updates metadata in each PR body, and reports if any children need restacking",
+
+        'cmd.restack.desc': "Rebase all direct child branches onto this PR's latest head. Use after pushing new commits to a parent PR.",
+        'cmd.restack.when': 'After updating a parent PR with new commits, or when <code>st discover</code> shows ⚠️ indicators',
+        'cmd.restack.what': 'Runs <code>git rebase --onto</code> for each child branch and force-pushes. Posts conflict resolution commands if rebase fails',
+
+        'cmd.merge.desc': 'Merge this PR into its base branch, then automatically restack all child branches.',
+        'cmd.merge.when': 'When this PR is approved and ready to merge, but child PRs still need more work',
+        'cmd.merge.what': 'Squash-merges the PR, rebases children onto the base branch (e.g., <code>main</code>), and updates each child\'s base branch reference',
+
+        'cmd.mergeAll.desc': 'Merge the entire stack in DFS order. Each PR is rebased, merged, then its children are processed.',
+        'cmd.mergeAll.when': 'When the entire stack is reviewed and approved — merge everything at once',
+        'cmd.mergeAll.what': 'Checks approval status on all PRs, then sequentially rebases and merges each one. Retries up to 10 min per PR for CI to pass',
+        'cmd.mergeAll.options': 'Add <code>--force</code> to skip the approval check (e.g., <code>st merge-all --force</code>)',
+
+        'cmd.help.desc': 'Show available commands and the current stack structure detected from metadata.',
+
+        'autoupdate.heading': 'Auto-update on Manual Merge',
+        'autoupdate.intro': 'Merged a parent PR through GitHub UI instead of <code>st merge</code>? Staqd has you covered.',
+        'autoupdate.desc': 'When a parent PR with stack metadata is merged (by any method), Staqd automatically detects the <code>closed</code> event and:',
+        'autoupdate.baseUpdate': 'Each child PR\'s base branch is re-targeted to the parent\'s base (e.g., <code>main</code>), preventing orphaned PRs',
+        'autoupdate.notification': 'A comment is posted on each child PR with the updated base and a reminder to run <code>st restack</code> if needed',
+        'autoupdate.requirement': 'Add <code>closed</code> to your workflow\'s <code>pull_request.types</code>: <code>[opened, edited, closed]</code>',
+
+        'howitworks.heading': 'How It Works',
+        'howitworks.intro': 'Everything reduces to one elegant git command:',
+        'howitworks.diagramBefore': 'Before (feat-1 squash-merged into main):',
+        'howitworks.diagramAfter': 'After rebasing:',
+        'howitworks.explanation': 'The skip SHA (<code>old_parent_tip_sha</code>) comes from GitHub\'s PR API, which preserves <code>head.sha</code> even after merge. No database needed.',
+
+        'comparison.heading': 'Comparison',
+        'comparison.intro': 'How Staqd compares to other stacked PR tools',
+        'comparison.installation': 'Installation',
+        'comparison.stackStorage': 'Stack storage',
+        'comparison.restackTrigger': 'Restack trigger',
+        'comparison.conflictResolution': 'Conflict resolution',
+        'comparison.treeStacks': 'Tree stacks',
+        'comparison.mergeQueue': 'Merge queue',
+        'comparison.externalDep': 'External dependency',
+        'comparison.staqd.installation': 'None (workflow file)',
+        'comparison.staqd.storage': 'PR body HTML comments',
+        'comparison.staqd.trigger': 'PR comment',
+        'comparison.staqd.conflict': 'Async (Actions → local fix → push)',
+        'comparison.staqd.tree': 'Supported (siblings)',
+        'comparison.staqd.mergeQueue': 'Comment-based',
+        'comparison.staqd.external': 'None',
+        'comparison.graphite.installation': 'CLI + account',
+        'comparison.graphite.storage': '.graphite_info + server',
+        'comparison.graphite.conflict': 'Sync (terminal)',
+        'comparison.graphite.tree': 'Supported (DAG)',
+        'comparison.graphite.mergeQueue': 'Dedicated UI',
+        'comparison.ghstack.storage': 'Commit metadata',
+        'comparison.ghstack.conflict': 'Sync (terminal)',
+        'comparison.ghstack.tree': 'Linear only',
+        'comparison.ghstack.mergeQueue': 'None',
+        'comparison.ghstack.external': 'None',
+
+        'footer.docs': 'Documentation',
+        'footer.issues': 'Issues',
+        'footer.license': 'License',
+        'footer.copy': 'MIT License © 2025 siner308 · Built with ❤️ for developers who stack PRs',
+
+        'common.copy': 'Copy',
+        'common.whenToUse': 'When to use',
+        'common.whatItDoes': 'What it does',
+        'common.exampleOutput': 'Example output',
+        'common.options': 'Options',
+        'common.baseUpdate': 'Base update',
+        'common.notification': 'Notification',
+        'common.requirement': 'Requirement',
+        'toast.linkCopied': 'Link copied!',
+        'toast.pageCopied': 'Copied as Markdown!',
+
+        'md.trigger': 'Copy page',
+        'md.copyTitle': 'Copy page',
+        'md.copyDesc': 'Copy page as Markdown for LLMs',
+        'md.viewTitle': 'View as Markdown',
+        'md.viewDesc': 'View this page as plain text'
+      },
+      ko: {
+        'hero.badge': '오픈 소스 · MIT 라이선스',
+        'hero.pronunciation': '/stakt/ — "stacked"처럼 발음합니다',
+        'hero.tagline': 'GitHub Actions와 PR 코멘트로 동작하는 Stacked PR 머지 큐',
+        'hero.viewGithub': 'GitHub에서 보기',
+        'hero.getStarted': '시작하기',
+
+        'features.heading': '설정 없이 바로 시작하세요',
+        'features.intro': 'CLI를 설치할 필요 없습니다. SaaS에 의존하지 않습니다. 워크플로우 파일 하나면 충분합니다.',
+        'features.noCli': 'CLI 없음',
+        'features.noCliDesc': '순수 GitHub Actions 기반입니다. 팀 전체에 별도로 설치하거나 관리할 바이너리가 없습니다.',
+        'features.noSaas': 'SaaS 없음',
+        'features.noSaasDesc': '외부 서비스도, 계정 생성도, API 할당량도 필요 없습니다. 당신의 저장소에서 직접 관리하세요.',
+        'features.justYaml': 'YAML 하나면 끝',
+        'features.justYamlDesc': '워크플로우 파일 하나만 추가하면 됩니다. 복사하고 커밋하면 준비 완료. 스택 메타데이터는 PR 본문에 저장됩니다.',
+
+        'quickstart.heading': '빠른 시작',
+        'quickstart.intro': '<code>.github/workflows/staqd.yml</code>에 이 워크플로우를 추가하세요',
+
+        'commands.heading': '명령어',
+        'commands.intro': 'PR에 코멘트를 남겨 작업을 실행하세요. 모든 명령어는 단축 별칭 <code>st</code>를 지원합니다 (예: <code>st merge</code>).',
+
+        'cmd.discover.desc': '열려 있는 PR의 베이스 브랜치 관계를 스캔하여 스택 트리를 자동으로 감지합니다. 수동 메타데이터 설정은 필요 없습니다.',
+        'cmd.discover.when': '스택 PR을 만든 후, 또는 PR의 베이스 브랜치를 변경하여 새로운 스택을 구성할 때 사용하세요',
+        'cmd.discover.what': '베이스 브랜치를 따라 하위 PR을 재귀적으로 찾고, 각 PR 본문의 메타데이터를 업데이트하며, 리스택이 필요한 항목을 알려줍니다',
+
+        'cmd.restack.desc': '이 PR의 최신 head를 기준으로 모든 직계 하위 브랜치를 리베이스합니다. 상위 PR에 새 커밋을 푸시한 후 사용하세요.',
+        'cmd.restack.when': '상위 PR에 새 커밋을 추가한 후, 또는 <code>st discover</code>에서 ⚠️ 표시가 나타날 때 사용하세요',
+        'cmd.restack.what': '각 하위 브랜치에 <code>git rebase --onto</code>를 실행하고 강제 푸시합니다. 리베이스 실패 시 충돌 해결 명령어를 안내합니다',
+
+        'cmd.merge.desc': '이 PR을 베이스 브랜치에 머지한 후, 모든 하위 브랜치를 자동으로 리스택합니다.',
+        'cmd.merge.when': '이 PR이 승인되어 머지할 준비가 됐지만, 하위 PR은 아직 작업이 필요할 때 사용하세요',
+        'cmd.merge.what': 'PR을 스쿼시 머지하고, 하위 브랜치를 베이스 브랜치(예: <code>main</code>)에 리베이스하며, 각 하위 PR의 베이스 브랜치를 업데이트합니다',
+
+        'cmd.mergeAll.desc': '전체 스택을 DFS 순서로 머지합니다. 각 PR을 리베이스하고 머지한 후, 하위 PR을 순차적으로 처리합니다.',
+        'cmd.mergeAll.when': '전체 스택의 리뷰와 승인이 완료되었을 때 사용하세요 — 한번에 모두 머지할 수 있습니다',
+        'cmd.mergeAll.what': '모든 PR의 승인 상태를 확인한 후 순차적으로 리베이스 및 머지합니다. PR당 최대 10분까지 CI 통과를 재시도합니다',
+        'cmd.mergeAll.options': '<code>--force</code>를 추가하면 승인 확인을 건너뜁니다 (예: <code>st merge-all --force</code>)',
+
+        'cmd.help.desc': '사용 가능한 명령어와 메타데이터에서 감지된 현재 스택 구조를 보여줍니다.',
+
+        'autoupdate.heading': '수동 머지 시 자동 업데이트',
+        'autoupdate.intro': 'GitHub UI에서 <code>st merge</code> 대신 직접 상위 PR을 머지하셨나요? Staqd가 알아서 처리합니다.',
+        'autoupdate.desc': '스택 메타데이터가 포함된 상위 PR이 머지되면, Staqd가 <code>closed</code> 이벤트를 자동으로 감지하여 다음을 수행합니다:',
+        'autoupdate.baseUpdate': '각 하위 PR의 베이스 브랜치를 상위의 베이스(예: <code>main</code>)로 재지정하여, 고아 PR이 생기는 것을 방지합니다',
+        'autoupdate.notification': '각 하위 PR에 업데이트된 베이스 정보와 필요한 경우 <code>st restack</code> 실행을 안내하는 코멘트를 남깁니다',
+        'autoupdate.requirement': '워크플로우의 <code>pull_request.types</code>에 <code>closed</code>를 추가해야 합니다: <code>[opened, edited, closed]</code>',
+
+        'howitworks.heading': '작동 원리',
+        'howitworks.intro': '핵심은 하나의 git 명령어로 귀결됩니다:',
+        'howitworks.diagramBefore': 'Before (feat-1이 main에 스쿼시 머지된 상태):',
+        'howitworks.diagramAfter': '리베이스 후:',
+        'howitworks.explanation': '스킵 SHA(<code>old_parent_tip_sha</code>)는 GitHub PR API에서 가져옵니다. 머지 후에도 <code>head.sha</code>가 보존되기 때문에 별도의 데이터베이스가 필요하지 않습니다.',
+
+        'comparison.heading': '비교',
+        'comparison.intro': '다른 Stacked PR 도구와 Staqd를 비교해 보세요',
+        'comparison.installation': '설치 방법',
+        'comparison.stackStorage': '스택 저장소',
+        'comparison.restackTrigger': '리스택 트리거',
+        'comparison.conflictResolution': '충돌 해결',
+        'comparison.treeStacks': '트리 스택',
+        'comparison.mergeQueue': '머지 큐',
+        'comparison.externalDep': '외부 의존성',
+        'comparison.staqd.installation': '없음 (워크플로우 파일)',
+        'comparison.staqd.storage': 'PR 본문 HTML 코멘트',
+        'comparison.staqd.trigger': 'PR 코멘트',
+        'comparison.staqd.conflict': '비동기 (Actions → 로컬 수정 → 푸시)',
+        'comparison.staqd.tree': '지원 (형제 브랜치)',
+        'comparison.staqd.mergeQueue': '코멘트 기반',
+        'comparison.staqd.external': '없음',
+        'comparison.graphite.installation': 'CLI + 계정',
+        'comparison.graphite.storage': '.graphite_info + 서버',
+        'comparison.graphite.conflict': '동기 (터미널)',
+        'comparison.graphite.tree': '지원 (DAG)',
+        'comparison.graphite.mergeQueue': '전용 UI',
+        'comparison.ghstack.storage': '커밋 메타데이터',
+        'comparison.ghstack.conflict': '동기 (터미널)',
+        'comparison.ghstack.tree': '선형만 가능',
+        'comparison.ghstack.mergeQueue': '없음',
+        'comparison.ghstack.external': '없음',
+
+        'footer.docs': '문서',
+        'footer.issues': '이슈',
+        'footer.license': '라이선스',
+        'footer.copy': 'MIT License © 2025 siner308 · PR을 쌓는 개발자를 위해 ❤️로 만들었습니다',
+
+        'common.copy': '복사',
+        'common.whenToUse': '사용 시기',
+        'common.whatItDoes': '동작 방식',
+        'common.exampleOutput': '출력 예시',
+        'common.options': '옵션',
+        'common.baseUpdate': '베이스 업데이트',
+        'common.notification': '알림',
+        'common.requirement': '필수 조건',
+        'toast.linkCopied': '링크가 복사되었습니다!',
+        'toast.pageCopied': 'Markdown으로 복사되었습니다!',
+
+        'md.trigger': '페이지 복사',
+        'md.copyTitle': '페이지 복사',
+        'md.copyDesc': 'LLM용 Markdown으로 복사합니다',
+        'md.viewTitle': 'Markdown으로 보기',
+        'md.viewDesc': '이 페이지를 텍스트로 봅니다'
+      }
+    };
+
+    function setLang(lang) {
+      // Update toggle buttons
+      document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+      document.getElementById('lang-ko').classList.toggle('active', lang === 'ko');
+
+      // Update html lang attribute
+      document.documentElement.lang = lang;
+
+      // Apply text translations
+      document.querySelectorAll('[data-i18n]').forEach(function(el) {
+        var key = el.getAttribute('data-i18n');
+        if (translations[lang] && translations[lang][key]) {
+          el.textContent = translations[lang][key];
+        }
+      });
+
+      // Apply HTML translations
+      document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
+        var key = el.getAttribute('data-i18n-html');
+        if (translations[lang] && translations[lang][key]) {
+          el.innerHTML = translations[lang][key];
+        }
+      });
+
+      // Persist preference
+      localStorage.setItem('staqd-lang', lang);
+    }
+
+    // Markdown menu toggle
+    function toggleMdMenu() {
+      document.getElementById('md-menu').classList.toggle('open');
+    }
+
+    // Close menu when clicking outside
+    document.addEventListener('click', function(e) {
+      var menu = document.getElementById('md-menu');
+      if (!menu.contains(e.target)) {
+        menu.classList.remove('open');
+      }
+    });
+
+    // Copy page as markdown
+    function copyPageMarkdown() {
+      fetch('llms-full.txt')
+        .then(function(r) { return r.text(); })
+        .then(function(text) {
+          navigator.clipboard.writeText(text).then(function() {
+            var lang = localStorage.getItem('staqd-lang') || 'en';
+            var toast = document.getElementById('copy-toast');
+            toast.textContent = translations[lang]['toast.pageCopied'];
+            toast.classList.add('show');
+            setTimeout(function() { toast.classList.remove('show'); }, 1500);
+          });
+        });
+      document.getElementById('md-menu').classList.remove('open');
+    }
+
     // Copy code block content
     function copyCode(btn) {
-      const code = btn.closest('.code-block').querySelector('code');
-      navigator.clipboard.writeText(code.textContent).then(() => {
-        btn.textContent = 'Copied!';
+      var code = btn.closest('.code-block').querySelector('code');
+      var lang = localStorage.getItem('staqd-lang') || 'en';
+      navigator.clipboard.writeText(code.textContent).then(function() {
+        var copiedText = lang === 'ko' ? '복사됨!' : 'Copied!';
+        var copyText = translations[lang]['common.copy'];
+        btn.textContent = copiedText;
         btn.classList.add('copied');
-        setTimeout(() => {
-          btn.textContent = 'Copy';
+        setTimeout(function() {
+          btn.textContent = copyText;
           btn.classList.remove('copied');
         }, 2000);
       });
@@ -1099,6 +1565,16 @@ feat-2:              E'───F'   <span class="code-comment">(C, D removed; o
         history.pushState(null, null, this.getAttribute('href'));
       });
     });
+
+    // Initialize language on page load
+    (function() {
+      var saved = localStorage.getItem('staqd-lang');
+      if (saved && translations[saved]) {
+        setLang(saved);
+      } else if (navigator.language && navigator.language.startsWith('ko')) {
+        setLang('ko');
+      }
+    })();
   </script>
 
 </body>
