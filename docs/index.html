@@ -646,6 +646,93 @@
       }
     }
 
+    /* Anchor links */
+    [id] {
+      scroll-margin-top: 2rem;
+    }
+
+    h2 {
+      position: relative;
+    }
+
+    h2 .anchor-link {
+      display: inline-block;
+      margin-left: 0.4em;
+      color: var(--purple);
+      text-decoration: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      font-size: 0.6em;
+      vertical-align: middle;
+      cursor: pointer;
+    }
+
+    h2:hover .anchor-link,
+    h2 .anchor-link:focus {
+      opacity: 0.6;
+    }
+
+    h2 .anchor-link:hover {
+      opacity: 1;
+    }
+
+    /* Command card anchors */
+    .command-card[id] {
+      scroll-margin-top: 2rem;
+    }
+
+    .command-header .cmd-anchor {
+      color: var(--purple);
+      text-decoration: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      margin-left: auto;
+      font-size: 0.9em;
+      cursor: pointer;
+    }
+
+    .command-card:hover .cmd-anchor,
+    .command-header .cmd-anchor:focus {
+      opacity: 0.6;
+    }
+
+    .command-header .cmd-anchor:hover {
+      opacity: 1;
+    }
+
+    /* Anchor highlight flash */
+    @keyframes anchor-flash {
+      0% { background: rgba(139, 92, 246, 0.2); }
+      100% { background: transparent; }
+    }
+
+    :target {
+      animation: anchor-flash 1.5s ease-out;
+    }
+
+    /* Copy toast */
+    .copy-toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100%);
+      background: var(--purple);
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .copy-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
     /* Utility */
     .text-center {
       text-align: center;
@@ -678,7 +765,7 @@
   <!-- Zero Setup -->
   <section id="features">
     <div class="container">
-      <h2>Zero Setup Tax</h2>
+      <h2 id="features-heading">Zero Setup Tax<a href="#features-heading" class="anchor-link" aria-label="Link to this section">#</a></h2>
       <p class="section-intro">No CLI to install. No SaaS dependency. One workflow file is all you need.</p>
       <div class="badges">
         <div class="badge-card">
@@ -703,7 +790,7 @@
   <!-- Quick Start -->
   <section id="quickstart">
     <div class="container">
-      <h2>Quick Start</h2>
+      <h2 id="quickstart-heading">Quick Start<a href="#quickstart-heading" class="anchor-link" aria-label="Link to this section">#</a></h2>
       <p class="section-intro">Add this workflow to <code>.github/workflows/staqd.yml</code></p>
 
       <div class="code-block">
@@ -735,13 +822,14 @@
   <!-- Commands -->
   <section id="commands">
     <div class="container">
-      <h2>Commands</h2>
+      <h2 id="commands-heading">Commands<a href="#commands-heading" class="anchor-link" aria-label="Link to this section">#</a></h2>
       <p class="section-intro">Comment on a PR to trigger actions. All commands support the short alias <code>st</code> (e.g., <code>st merge</code>).</p>
 
       <div class="command-cards">
-        <div class="command-card">
+        <div id="cmd-discover" class="command-card">
           <div class="command-header">
             <code class="command-name">stack discover</code>
+            <a href="#cmd-discover" class="cmd-anchor" aria-label="Link to this command">#</a>
           </div>
           <p class="command-desc">Auto-detect the stack tree by scanning open PRs' base branch relationships. No manual metadata setup needed.</p>
           <div class="command-details">
@@ -767,10 +855,11 @@
           </div>
         </div>
 
-        <div class="command-card">
+        <div id="cmd-restack" class="command-card">
           <div class="command-header">
             <code class="command-name">stack restack</code>
             <span class="command-badge command-badge-write">push</span>
+            <a href="#cmd-restack" class="cmd-anchor" aria-label="Link to this command">#</a>
           </div>
           <p class="command-desc">Rebase all direct child branches onto this PR's latest head. Use after pushing new commits to a parent PR.</p>
           <div class="command-details">
@@ -785,10 +874,11 @@
           </div>
         </div>
 
-        <div class="command-card">
+        <div id="cmd-merge" class="command-card">
           <div class="command-header">
             <code class="command-name">stack merge</code>
             <span class="command-badge command-badge-write">merge + push</span>
+            <a href="#cmd-merge" class="cmd-anchor" aria-label="Link to this command">#</a>
           </div>
           <p class="command-desc">Merge this PR into its base branch, then automatically restack all child branches.</p>
           <div class="command-details">
@@ -803,10 +893,11 @@
           </div>
         </div>
 
-        <div class="command-card">
+        <div id="cmd-merge-all" class="command-card">
           <div class="command-header">
             <code class="command-name">stack merge-all</code>
             <span class="command-badge command-badge-write">merge + push</span>
+            <a href="#cmd-merge-all" class="cmd-anchor" aria-label="Link to this command">#</a>
           </div>
           <p class="command-desc">Merge the entire stack in DFS order. Each PR is rebased, merged, then its children are processed.</p>
           <div class="command-details">
@@ -825,9 +916,10 @@
           </div>
         </div>
 
-        <div class="command-card">
+        <div id="cmd-help" class="command-card">
           <div class="command-header">
             <code class="command-name">stack help</code>
+            <a href="#cmd-help" class="cmd-anchor" aria-label="Link to this command">#</a>
           </div>
           <p class="command-desc">Show available commands and the current stack structure detected from metadata.</p>
         </div>
@@ -838,7 +930,7 @@
   <!-- Auto-update -->
   <section id="auto-update">
     <div class="container">
-      <h2>Auto-update on Manual Merge</h2>
+      <h2 id="auto-update-heading">Auto-update on Manual Merge<a href="#auto-update-heading" class="anchor-link" aria-label="Link to this section">#</a></h2>
       <p class="section-intro">Merged a parent PR through GitHub UI instead of <code>st merge</code>? Staqd has you covered.</p>
 
       <div class="command-card">
@@ -866,7 +958,7 @@
   <!-- How It Works -->
   <section id="how-it-works">
     <div class="container">
-      <h2>How It Works</h2>
+      <h2 id="how-it-works-heading">How It Works<a href="#how-it-works-heading" class="anchor-link" aria-label="Link to this section">#</a></h2>
       <p class="section-intro">Everything reduces to one elegant git command:</p>
 
       <div class="code-block">
@@ -895,7 +987,7 @@ feat-2:              E'───F'   <span class="code-comment">(C, D removed; o
   <!-- Comparison -->
   <section id="comparison">
     <div class="container">
-      <h2>Comparison</h2>
+      <h2 id="comparison-heading">Comparison<a href="#comparison-heading" class="anchor-link" aria-label="Link to this section">#</a></h2>
       <p class="section-intro">How Staqd compares to other stacked PR tools</p>
 
       <div class="comparison">
@@ -976,7 +1068,11 @@ feat-2:              E'───F'   <span class="code-comment">(C, D removed; o
     </div>
   </footer>
 
+  <!-- Copy toast notification -->
+  <div class="copy-toast" id="copy-toast">Link copied!</div>
+
   <script>
+    // Copy code block content
     function copyCode(btn) {
       const code = btn.closest('.code-block').querySelector('code');
       navigator.clipboard.writeText(code.textContent).then(() => {
@@ -988,6 +1084,22 @@ feat-2:              E'───F'   <span class="code-comment">(C, D removed; o
         }, 2000);
       });
     }
+
+    // Click anchor links to copy the full URL to clipboard
+    document.querySelectorAll('.anchor-link, .cmd-anchor').forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        var url = window.location.origin + window.location.pathname + this.getAttribute('href');
+        navigator.clipboard.writeText(url).then(function() {
+          var toast = document.getElementById('copy-toast');
+          toast.classList.add('show');
+          setTimeout(function() { toast.classList.remove('show'); }, 1500);
+        });
+        // Still update the hash for navigation
+        history.pushState(null, null, this.getAttribute('href'));
+      });
+    });
   </script>
+
 </body>
 </html>
