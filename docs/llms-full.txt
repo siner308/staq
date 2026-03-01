@@ -59,8 +59,8 @@ Why a GitHub App? `GITHUB_TOKEN` pushes don't trigger other workflows (GitHub se
 
 Comment on a PR to trigger:
 
-- `stack merge` (`st merge`) — Merge this PR and restack child branches
-- `stack merge-all` (`st merge-all`) — Merge the entire stack in order (all PRs must be approved)
+- `stack merge` (`st merge`) — Merge this PR, restack child branches, and delete the merged branch
+- `stack merge-all` (`st merge-all`) — Merge the entire stack in order, deleting each branch after merge (all PRs must be approved)
 - `stack merge-all --force` (`st merge-all --force`) — Merge the entire stack (skip approval check)
 - `stack restack` (`st restack`) — Rebase child branches without merging
 - `stack discover` (`st discover`) — Auto-discover stack tree from base branches and update metadata
@@ -84,17 +84,17 @@ Rebase all direct child branches onto this PR's latest head. Use after pushing n
 
 ### stack merge
 
-Merge this PR into its base branch, then automatically restack all child branches.
+Merge this PR into its base branch, restack all child branches, and delete the merged branch.
 
 - When to use: When this PR is approved and ready to merge, but child PRs still need more work.
-- What it does: Squash-merges the PR, rebases children onto the base branch (e.g., `main`), and updates each child's base branch reference.
+- What it does: Squash-merges the PR, deletes the merged branch, rebases children onto the base branch (e.g., `main`), and updates each child's base branch reference.
 
 ### stack merge-all
 
-Merge the entire stack in DFS order. Each PR is rebased, merged, then its children are processed.
+Merge the entire stack in DFS order. Each PR is rebased, merged, its branch deleted, then its children are processed.
 
 - When to use: When the entire stack is reviewed and approved — merge everything at once.
-- What it does: Checks approval status on all PRs, then sequentially rebases and merges each one. Retries up to 10 min per PR for CI to pass.
+- What it does: Checks approval status on all PRs, then sequentially rebases and merges each one, deleting each branch after merge. Retries up to 10 min per PR for CI to pass. The result table includes merge order — if a conflict occurs, the failure message shows which PRs to fix and in what order.
 - Options: Add `--force` to skip the approval check (e.g., `st merge-all --force`).
 
 ### stack help
@@ -216,6 +216,7 @@ Requires `closed` in your workflow's `pull_request.types`: `[opened, edited, clo
 ## Troubleshooting
 
 - CI doesn't run after restack push: `GITHUB_TOKEN` pushes don't trigger other workflows. Set up a GitHub App or PAT.
+- merge-all stops at a conflict: The result table shows the merge order and which PRs failed. Fix the conflict locally, push, then run `st merge` on the failed PRs in the order shown.
 - merge-all CI timeout: Default wait is ~10 min (30s x 20 retries). Increase `tryMerge` retry count for slower CI.
 - PR diff looks wrong after restack: The PR's base branch may not have been updated. `stack restack` handles this automatically, but you can manually change the base in PR settings.
 - Second PR in merge-all always fails initially: If branch protection has required checks, CI may not exist yet right after restack. `tryMerge` retries until CI is created and passes.

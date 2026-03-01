@@ -171,8 +171,8 @@ Comment on a PR to trigger:
 
 | Command | Action |
 |---------|--------|
-| `stack merge` (`st merge`) | Merge this PR and restack child branches |
-| `stack merge-all` (`st merge-all`) | Merge the entire stack in order (all PRs must be approved) |
+| `stack merge` (`st merge`) | Merge this PR, restack child branches, and delete the merged branch |
+| `stack merge-all` (`st merge-all`) | Merge the entire stack in order, deleting each branch after merge (all PRs must be approved) |
 | `stack merge-all --force` (`st merge-all --force`) | Merge the entire stack (skip approval check) |
 | `stack restack` (`st restack`) | Rebase child branches without merging |
 | `stack discover` (`st discover`) | Auto-discover stack tree from base branches and update metadata |
@@ -223,9 +223,9 @@ Staqd scans all open PRs by base branch relationships, builds the tree, and upda
 
 Found 3 PR(s) in the stack:
 
-- #1 (feat-auth) → #2
-  - #2 (feat-auth-ui) → #3 ⚠️
-    - #3 (feat-auth-tests)
+- #1 (`feat-auth`)
+  - #2 (`feat-auth-ui`) ⚠️
+    - #3 (`feat-auth-tests`)
 
 All PR metadata has been updated.
 
@@ -436,6 +436,9 @@ This prevents child PRs from becoming orphaned with a deleted base branch. The c
 
 **CI doesn't run after restack push:**
 `GITHUB_TOKEN` pushes don't trigger other workflows. Set up a GitHub App or PAT.
+
+**merge-all stops at a conflict:**
+The result table shows the merge order and which PRs failed. Fix the conflict locally, push, then run `st merge` on the failed PRs in the order shown (e.g., `Fix the issue and run \`st merge\` in order: #3 → #5`).
 
 **merge-all CI timeout:**
 Default wait is ~10 min (30s × 20 retries). Increase `tryMerge` retry count for slower CI.
